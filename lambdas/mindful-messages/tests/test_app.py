@@ -1,4 +1,3 @@
-from datetime import time
 import os
 import boto3
 from unittest import TestCase, mock
@@ -71,7 +70,9 @@ class TestApp(TestCase):
         # Mock DB items setup
         self.user_item = UserItem(table=self.table, wbx_person=self.wbx_person, wbx_token=self.wbx_token)
         self.session_item = SessionItem(table=self.table, user_id=self.user_item.id)
+        self.user_item.add_session(self.session_item.id)
         self.message_item = MessageItem(table=self.table, user_id=self.user_item.id, time='2021-12-25T12:00:00', msg='Test msg', person='test@domain.com')
+        self.user_item.add_message(self.message_item.id)
 
     def tearDown(self):
         self.client = None
@@ -116,3 +117,20 @@ class TestApp(TestCase):
                 body=dumps(body)
             )
             self.assertTrue(response.json_body['success'])
+
+    def test_delete_message(self):
+        with self.client as client:
+            response = client.http.delete(
+                f'/message?session={self.session_item.id}&message={self.message_item.id}',
+                headers={'Content-Type':'application/json'}
+            )
+            self.assertTrue(response.json_body['success'])
+
+    def test_get_messages(self):
+        with self.client as client:
+            response = client.http.get(
+                f'/messages?session={self.session_item.id}',
+                headers={'Content-Type':'application/json'}
+            )
+            self.assertTrue(response.json_body['success'])
+            self.assertIn(self.message_item.to_dict(), response.json_body['results'])
