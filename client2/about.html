@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="description" content="The design system sponsored by Cisco Brand">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Mindful Messages</title>
+        <link rel="stylesheet" href="css/cui-standard.min.css">
+        <script src="js/index.js"></script>
+    </head>
+    <body class="cui">
+        <div class="container-sm base-padding">
+            <div class="row dbl-padding-bottom">
+                <header class="header">
+                    <div class="container">
+                        <div class="header-panels">
+                            <div class="header-panel">
+                                <div class="header__title">Mindful Messages</div>
+                            </div>
+                            <div class="header-panel header-panel--center">
+                                <div class="header-item">
+                                    <ul id="tabsheader" class="tabs">
+                                        <li id="tabsheader-1" class="tab">
+                                            <a tabindex="0" href="index.html">
+                                                <div class="tab__heading">Home</div>
+                                            </a>
+                                                </li>
+                                        <li id="tabsheader-2" class="tab">
+                                            <a tabindex="0" href="messages.html">
+                                                <div class="tab__heading">Messages</div>
+                                            </a>
+                                        </li>
+                                        <li id="tabsheader-3" class="tab active">
+                                            <a tabindex="0" href="about.html">
+                                                <div class="tab__heading">About</div>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="header-panel header-panel--right">
+                                <a class="header-item" href="#" id="wbxLoginBtn">
+                                    <span class="half-margin-right" id="loginText">Log In</span>
+                                    <span class="icon-sign-in icon-size-20" id="loginIcon"></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+            </div>
+            <br>
+            <div class="row flex flex-center">
+                <div class="col-8 text-left">
+                    <h3>What is Mindful Messages?</h3>
+                    <p>
+                        Mindful Messages is a Webex integration that provides a message scheduling service.
+                        It gives you an option to send a message to someone on the Webex platform at a time 
+                        more in tune with their active hours. By scheduling a message for during someone's active hours,
+                        you are saving that person from a distracting notification and implicit expectations of working outside of 
+                        their normal hours.
+                    </p>
+                    <h3>Demo POC Implementation Details</h3>
+                    <p>
+                        This deployment of Mindful Messages is a demo proof of concept. 
+                        The goal of this demo is demonstrate integration with 
+                        <a href="https://developer.webex.com/docs/integrations">Webex using OAuth2</a>, 
+                        the <a href="https://developer.cisco.com/site/uiux/">Cisco UI Kit</a>, 
+                        <a href="https://github.com/CiscoDevNet/webexteamssdk">webexteamssdk</a>, 
+                        and 
+                        <a href="https://epsagon.com/">Epsagon</a>. Other components in use are AWS Chalice, 
+                        Lambda, API Gateway, and DynamoDB.
+                    </p>
+                    <p>
+                        While you may get value out of using this demo, it is still a demo and comes with no support 
+                        and new features and functionality will be added at the maintainers' leisure.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="modal modal--small" id="modal-default" hidden>
+            <div class="modal__dialog">
+                <div class="modal__content">
+                    <a class="modal__close" onclick="closeModal('modal-default')"><span class="icon-close"></span></a>
+                    <div class="modal__header">
+                        <div class="modal__title"></div>
+                    </div>
+                    <div class="modal__body">
+                       <p class="subtitle"></p>
+                    </div>
+                    <div class="modal__footer">
+                        <button class="btn" onclick="closeModal('modal-default')">Ok</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

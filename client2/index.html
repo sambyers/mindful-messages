@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="description" content="The design system sponsored by Cisco Brand">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Mindful Messages</title>
+        <link rel="stylesheet" href="css/cui-standard.min.css">
+        <script src="js/index.js"></script>
+    </head>
+    <body class="cui">
+        <div class="container-sm base-padding">
+            <div class="row dbl-padding-bottom">
+                <header class="header">
+                    <div class="container">
+                        <div class="header-panels">
+                            <div class="header-panel">
+                                <div class="header__title">Mindful Messages</div>
+                            </div>
+                            <div class="header-panel header-panel--center">
+                                <div class="header-item">
+                                    <ul id="tabsheader" class="tabs">
+                                        <li id="tabsheader-1" class="tab active">
+                                            <a tabindex="0" href="index.html">
+                                                <div class="tab__heading">Home</div>
+                                            </a>
+                                                </li>
+                                        <li id="tabsheader-2" class="tab">
+                                            <a tabindex="0" href="messages.html">
+                                                <div class="tab__heading">Messages</div>
+                                            </a>
+                                        </li>
+                                        <li id="tabsheader-3" class="tab">
+                                            <a tabindex="0" href="about.html">
+                                                <div class="tab__heading">About</div>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="header-panel header-panel--right">
+                                <a class="header-item" href="#" id="wbxLoginBtn">
+                                    <span class="half-margin-right" id="loginText">Log In</span>
+                                    <span class="icon-sign-in icon-size-20" id="loginIcon"></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+            </div>
+            <br>
+            <div class="row">
+                <div class="col-12">
+                    <div class="row base-padding flex flex-center">
+                        <div class="col-md-6">
+                            <div class="form-group base-margin-bottom">
+                                <div class="form-group__text">
+                                    <input id="emailInput" class="msgInput" name="Email" type="email" placeholder="person@domain.com" pattern=".+@.+\.com" size="30" required>
+                                    <label for="emailInput">Email</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row base-padding flex flex-center">
+                        <div class="col-md-3">
+                            <div class="form-group base-margin-bottom">
+                                <div class="form-group__text">
+                                    <input id="datetimeInput" class="msgInput" name="Date and time" type="datetime-local" required>
+                                    <label for="datetimeInput">Date</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <div class="form-group__text select">
+                                    <select id="timeZoneSelect" name="Timezone" class="msgInput" required>
+                                        <option value="US/Alaska">US/Alaska</option>
+                                        <option value="US/Arizona">US/Arizona</option>
+                                        <option value="US/Central">US/Central</option>
+                                        <option value="US/Eastern">US/Eastern</option>
+                                        <option value="US/Hawaii">US/Hawaii</option>
+                                        <option value="US/Mountain">US/Mountain</option>
+                                        <option value="US/Pacific">US/Pacific</option>
+                                        <option value="US/Samoa">US/Samoa</option>
+                                    </select>
+                                    <label for="timeZoneSelect">Timezone</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row base-padding flex flex-center">
+                        <div class="col-md-6">
+                            <div class="form-group base-margin-bottom">
+                                <div class="form-group__text">
+                                    <textarea id="messageInput" class="textarea msgInput" rows="3" name="Message" maxlength="1000" required"></textarea>
+                                    <label for="messageInput">Message</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row flex flex-center">
+                        <div class="col-md-4">
+                            <button class="btn btn--large btn--justified" id="msgSubmitBtn">Schedule</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal modal--small" id="modal-default" hidden>
+            <div class="modal__dialog">
+                <div class="modal__content">
+                    <a class="modal__close" onclick="closeModal('modal-default')"><span class="icon-close"></span></a>
+                    <div class="modal__header">
+                        <div class="modal__title"></div>
+                    </div>
+                    <div class="modal__body">
+                       <p class="subtitle"></p>
+                    </div>
+                    <div class="modal__footer">
+                        <button class="btn" onclick="closeModal('modal-default')">Ok</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </body>
+</html>
