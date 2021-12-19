@@ -124,6 +124,26 @@ function Logout(sessionId) {
         }
     })
 }
+// Forget user
+function forgetMe(sessionId) {
+    let btn = document.getElementById('forgetMe')
+    btn.onclick = function() {
+        fetch(baseApiUrl + 'user?session=' + sessionId, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Logout(sessionId)
+            } else {
+                errorMsg('Error: User not forgotten.')
+            }
+        })
+    }
+}
 // Schedule a message
 function scheduleMessage(sessionid) {
     
