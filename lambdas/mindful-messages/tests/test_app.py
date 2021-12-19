@@ -1,5 +1,6 @@
 import os
 import boto3
+from webexteamssdk import WebexTeamsAPI
 from unittest import TestCase, mock
 from urllib.parse import urlparse
 from json import dumps
@@ -73,6 +74,7 @@ class TestApp(TestCase):
         self.user_item.add_session(self.session_item.id)
         self.message_item = MessageItem(table=self.table, user_id=self.user_item.id, time='2021-12-25T12:00:00', msg='Test msg', person='test@domain.com')
         self.user_item.add_message(self.message_item.id)
+        self.code = '123'
 
     def tearDown(self):
         self.client = None
@@ -134,3 +136,27 @@ class TestApp(TestCase):
             )
             self.assertTrue(response.json_body['success'])
             self.assertIn(self.message_item.to_dict(), response.json_body['results'])
+
+''' TODO: Test the auth route offline.
+    def test_auth_webex_fail(self):
+        with self.client as client:
+            auth_url_response = client.http.get(
+                '/wbxauth',
+                headers={'Content-Type':'application/json'}
+            )
+        auth_url = auth_url_response.json_body['results']['location']
+        parsed_auth_url = urlparse(auth_url)
+        parsed_auth_param_list = parsed_auth_url.query.split('&')
+        for param in parsed_auth_param_list:
+            if 'state' in param:
+                self.state = param.split('=')[1]
+        with mock.patch('WebexTeamsAPI') as WebexTeamsAPI:
+
+            with self.client as client:
+                auth_response = client.http.get(
+                    f'/auth?code={self.code}&state={self.state}',
+                    headers={'Content-Type':'application/json'}
+                )
+            print(auth_response.json_body)
+            self.assertFalse(auth_response.json_body['success'])
+'''
