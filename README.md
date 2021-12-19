@@ -52,7 +52,7 @@ After logging in with your Webex account and authorizing the integration, you're
 ![Schedule input screenshot](/assets/images/mm-postlogin.png)
 
 ### Viewing scheduled messages
-To view your scheduled messages, navigate to Messages. Each message will display as a card. The card details who the message is to, when its scheduled to send, and the message to be sent. To delete a message, simply click the delete link on a message card.
+To view your scheduled messages, navigate to Messages. Each message will display as a card. The card details who the message is to, when it's scheduled to send, and the message to be sent. To delete a message, simply click the delete link on a message card.
 ![Messages screenshot](/assets/images/mm-msglist.png)
 
 ## Setup, testing, and deployment
