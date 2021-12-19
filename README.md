@@ -22,6 +22,7 @@ You can find the demo proof of concept [here](https://mindful-messages.s3.amazon
 - AWS Lambda
 - AWS API Gateway
 - AWS DyanmoDB
+- AWS S3
 
 ### Cisco Products and Services
 - Cisco Webex API
