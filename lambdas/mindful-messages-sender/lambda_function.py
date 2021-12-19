@@ -1,5 +1,5 @@
-import epsagon
 import os
+import epsagon
 import boto3
 from boto3.dynamodb.conditions import Key
 from webexteamssdk import WebexTeamsAPI
