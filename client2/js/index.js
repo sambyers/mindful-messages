@@ -30,6 +30,7 @@ window.onload = function() {
         if (username) {
             setLogoutButton(sessionId, 'wbxLoginBtn')
             setUsername('loginIcon', 'loginText', username)
+            forgetMe(sessionId)
         } else { getUser(sessionId) }
     } 
     // Check if home with session in url
@@ -127,6 +128,7 @@ function Logout(sessionId) {
 // Forget user
 function forgetMe(sessionId) {
     let btn = document.getElementById('forgetMe')
+    btn.classList.remove('disabled')
     btn.onclick = function() {
         fetch(baseApiUrl + 'user?session=' + sessionId, {
             method: 'DELETE',

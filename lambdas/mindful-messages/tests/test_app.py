@@ -82,7 +82,7 @@ class TestApp(TestCase):
         self.table.delete()
         self.dynamodb = None
 
-    def test_get_wbxauth(self):
+    def test_wbxauth_get(self):
         with self.client as client:
             response = client.http.get(
                 '/wbxauth',
@@ -93,15 +93,23 @@ class TestApp(TestCase):
             self.assertIn(self.env_vars['OAUTH_REDIRECT_URI'], parsed.query)
             self.assertTrue(response.json_body['success'])
     
-    def test_get_user(self):
+    def test_user_get(self):
         with self.client as client:
             response = client.http.get(
                 f'/user?session={self.session_item.id}',
                 headers={'Content-Type':'application/json'}
             )
             self.assertEqual(response.json_body['results']['username'], self.wbx_person.nickName)
+
+    def test_user_delete(self):
+        with self.client as client:
+            response = client.http.delete(
+                f'/user?session={self.session_item.id}',
+                headers={'Content-Type':'application/json'}
+            )
+            self.assertTrue(response.json_body['success'])
     
-    def test_get_logout(self):
+    def test_logout_get(self):
         with self.client as client:
             response = client.http.get(
                 f'/logout?session={self.session_item.id}',
@@ -109,7 +117,7 @@ class TestApp(TestCase):
             )
             self.assertTrue(response.json_body['success'])
 
-    def test_post_schedule(self):
+    def test_schedule_post(self):
         body = self.message_item.to_dict()
         body['timezone'] = 'US/Alaska'
         with self.client as client:
@@ -120,7 +128,7 @@ class TestApp(TestCase):
             )
             self.assertTrue(response.json_body['success'])
 
-    def test_delete_message(self):
+    def test_message_delete(self):
         with self.client as client:
             response = client.http.delete(
                 f'/message?session={self.session_item.id}&message={self.message_item.id}',
@@ -128,7 +136,7 @@ class TestApp(TestCase):
             )
             self.assertTrue(response.json_body['success'])
 
-    def test_get_messages(self):
+    def test_messages_get(self):
         with self.client as client:
             response = client.http.get(
                 f'/messages?session={self.session_item.id}',
