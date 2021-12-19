@@ -173,7 +173,7 @@ OK
 ```
 
 #### Deploy
-Once you have the configuration and IAM policies in the .chalice directory, you can simply issue ```chalice deploy```. Chalice will use your AWS credentials and provision the necessary resources (Lambda, API Gateway).
+Once you have the configuration and IAM policies in the ```.chalice``` directory, you can simply issue ```chalice deploy```. Chalice will use your AWS credentials and provision the necessary resources (Lambda, API Gateway).
 
 ### Mindful Messages Sender function
 This function is scheduled to run periodically to check for messages that are scheduled to be send. Repo location: ```/lambdas/mindful-messages-sender```.
