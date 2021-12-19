@@ -152,6 +152,33 @@ def user():
         print(e)
         return {'success': False, 'results': {'error': 'Database error.'}}
 
+# Delete the user given a session ID in the query params
+@app.route('/user', methods=['DELETE'], cors=cors_config)
+def user():
+    request = app.current_request
+    session_id = request.query_params.get('session')
+    try:
+        session_item = SessionItem(table=get_table(), session_id=session_id)
+        if session_item.expired:
+            session_item.delete()
+            return {'success': False, 'results': 'Session Expired.'}
+        else:
+            user_item = UserItem(table=get_table(), user_id=session_item.user_id)
+            if user_item.is_valid:
+                if hasattr(user_item,'messages'):
+                    # For each message ID in the user item, get the message item and delete it
+                    for message_id in user_item.messages:
+                        message_item = MessageItem(table=get_table(), msg_id=message_id)
+                        if message_item.is_valid:
+                            message_item.delete()
+                if user_item.delete():
+                    return {'success': True, 'results': 'User deleted.'}
+                else:
+                    return {'success': False, 'results': 'User not deleted.'}
+    except Exception as e:
+        print(e)
+        return db_error
+
 # Logout the user session given a session ID in the query params
 @app.route('/logout', methods=['GET'], cors=cors_config)
 def logout():
