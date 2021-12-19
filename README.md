@@ -71,7 +71,7 @@ The primary backend app is a Lambda function called mindful-messages. It was cre
 Chalice is a serverless app framework. It's produced by AWS and is very simple to use. [Learn about Chalice.](https://aws.github.io/chalice/index.html)
 
 #### Configuration
-Chalice configuration lives in the .chalice directory and is not present in this repo. It is deployment specific. The Chalice configuration template used by this app is below.
+Chalice configuration lives in the ```.chalice``` directory and is not present in this repo. It is deployment specific. Make a ```.chalice``` directory to put Chalice configuration in. The Chalice configuration template used by this app is below.
 ```
 {
   "version": "2.0",
