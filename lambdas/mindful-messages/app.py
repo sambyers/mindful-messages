@@ -92,6 +92,7 @@ def auth():
     if 'code' in request.query_params and f'state#{state}' == oauth_state:
         # Get OAuth granted code from query params
         code = request.query_params.get('code')
+        wbxapi = None
         wbxapi = authorize(code)
     if wbxapi:
         person = wbxapi.people.me()
@@ -233,7 +234,11 @@ def messages():
                 message_item = MessageItem(table=get_table(), msg_id=message_id)
                 if message_item.is_valid:
                     if not message_item.is_datetime_expired(message_item.time):
-                        results.append(message_item.to_dict())
+                        msg_dict = message_item.to_dict()
+                        # time = msg_dict['time']
+                        # time = message_item.from_utc(time, timezone)
+                        # msg_dict['time'] = time
+                        results.append(msg_dict)
         return {'success': True, 'results': results}
 
 # Delete message given a message ID and session ID
@@ -259,5 +264,35 @@ def message():
         else:
             return {'success': True, 'results': 'Message does not exist.'}
 
+@app.route('/people', methods=['GET'], cors=cors_config)
+def people():
+    request = app.current_request
+    # Get the session id and person query from query parameters
+    session_id = request.query_params.get('session')
+    query = request.query_params.get('q')
+    query = str(query)
+    session_item = SessionItem(table=get_table(), session_id=session_id)
+    if session_item.expired:
+        session_item.delete()
+        return {'success': False, 'results': 'Session Expired.'}
+    user_item = None
+    wbxapi = None
+    results = []
+    if all(chr.isalpha() or chr.isspace() for chr in query):
+        user_item = UserItem(table=get_table(), user_id=session_item.user_id)
+    if user_item:
+        if user_item.is_valid and not user_item.is_datetime_expired(user_item.wbx_token_expires):
+                wbxapi = WebexTeamsAPI(access_token=user_item.wbx_token)
+    if wbxapi:
+        people = wbxapi.people.list(displayName=query)
+        for person in people:
+            result = {}
+            result['displayname'] = person.displayName
+            result['email'] = person.emails[0]
+            results.append(result)
+    if len(results) > 0:
+        return {'success': True, 'results': results}
+    else:
+        return {'success': False, 'results': 'No results.'}
 # Epsagon monitoring
 app = epsagon.chalice_wrapper(app)

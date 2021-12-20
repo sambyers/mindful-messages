@@ -145,7 +145,15 @@ class TestApp(TestCase):
             self.assertTrue(response.json_body['success'])
             self.assertIn(self.message_item.to_dict(), response.json_body['results'])
 
-''' TODO: Test the auth route offline.
+''' TODO: Tests that require webexteamssdk mocked
+    def test_people_get(self):
+        with self.client as client:
+            response = client.http.get(
+                f'/people?session={self.session_item.id}&q={self.person_name}',
+                headers={'Content-Type':'application/json'}
+            )
+            self.assertTrue(response.json_body['success'])
+
     def test_auth_webex_fail(self):
         with self.client as client:
             auth_url_response = client.http.get(

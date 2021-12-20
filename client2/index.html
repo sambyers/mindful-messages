@@ -55,7 +55,7 @@
                         <div class="col-md-6">
                             <div class="form-group base-margin-bottom">
                                 <div class="form-group__text">
-                                    <input id="emailInput" class="msgInput" name="Email" type="email" placeholder="person@domain.com" pattern=".+@.+\.com" size="30" required>
+                                    <input id="emailInput" class="msgInput" name="Email" type="text" list="peopleSuggestions" placeholder="Search a name..." size="30" oninput="searchName()" autocomplete="off" required>
                                     <label for="emailInput">Email</label>
                                 </div>
                             </div>

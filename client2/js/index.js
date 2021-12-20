@@ -175,12 +175,10 @@ function scheduleMessage(sessionid) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                successMsg('The message will be sent to ' + person.value + ' at ' + UtcToLocalDatetimeString(time.value) + '!')
-                // statusMsg('😎 Ok! The message will be sent to ' + person.value + ' at ' + time.value + '!')
+                successMsg('This message will be sent to ' + person.value + '.')
                 person.value = ''
                 msg.value = ''
                 time.value = ''
-                getMessages(sessionid)
             } else {
                 errorMsg('Oops! Something went wrong. Message was not scheduled.')
             }
@@ -225,11 +223,10 @@ function addMsgCards(sessionId, data) {
         cln.hidden = false
     }
 }
-// Change ISO format datetime into local datetime string
+// Change ISO datetime format into local string format
 function UtcToLocalDatetimeString(dt) {
-    dt = dt + 'Z' // Marks datetime string as UTC
-    newDatetime = new Date(dt)
-    return newDatetime.toLocaleString()
+    dt = dt + 'Z'
+    return new Date(dt).toLocaleString()
 }
 // Delete all message cards on messages page
 function clearMsgCards() {
@@ -291,4 +288,39 @@ function checkInputValidity() {
         }
     }
     return true
+}
+// Search API for user name
+function searchName() {
+    let sessionId = sessionStorage.getItem('session')
+    input = document.getElementById('emailInput')
+    input = input.value.toLowerCase()
+    if (input.length > 7 && !input.includes('@')) {
+        fetch(baseApiUrl + 'people?session=' + sessionId + '&q=' + input, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            mode:'cors'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                fillInputSuggestionList(data.results)
+            }
+        })
+    }
+}
+
+function fillInputSuggestionList(items) {
+    let old_dl = document.getElementById('peopleSuggestions')
+    if (old_dl) { old_dl.remove() }
+    let dl = document.createElement('datalist')
+    dl.setAttribute('id', 'peopleSuggestions')
+    for (let i = 0; i < items.length; i++) {
+        let option = document.createElement('option')
+        option.value = items[i]['email']
+        option.innerText = items[i]['displayname']
+        dl.appendChild(option)
+    }
+    document.body.appendChild(dl)
 }
