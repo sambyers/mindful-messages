@@ -11,6 +11,7 @@ You can find the demo proof of concept [here](https://mindful-messages.s3.amazon
 - Schedule messages to be sent later on Webex
 - View scheduled messages
 - Delete scheduled messages
+- Completely delete your account and scheduled messages from the service (Forget Me button on the About page)
 
 ## Solution Components
 
