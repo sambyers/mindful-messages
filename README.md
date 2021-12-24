@@ -221,7 +221,7 @@ OK
 ```
 
 ### Mindful Messages frontend
-The frontend is a simple website with minimal vanilla Javascript. Repo location: ```/client2```. The Cisco UI kit us used for the webpage. It was very easy to use and looks good too.
+The frontend is a simple website with minimal vanilla Javascript. Repo location: ```/client2```. The Cisco UI kit is used for the webpage. It was very easy to use and looks good too.
 
 There are two important variables to set at the top of the ```js/index.js``` file called ```baseApiUrl``` and ```rootUrl```. Set the former to the API Gateway URL without any routes appended and the latter to the root URL of the website itself.
 
