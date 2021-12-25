@@ -1,4 +1,4 @@
-[![Lint and test Mindful Messages](https://github.com/sambyers/mindful-messages/actions/workflows/mindful-messages.yml/badge.svg)](https://github.com/sambyers/mindful-messages/actions/workflows/mindful-messages.yml)
+[![Mindful Messages Tests](https://github.com/sambyers/mindful-messages/actions/workflows/mindful-messages.yml/badge.svg)](https://github.com/sambyers/mindful-messages/actions/workflows/mindful-messages.yml)
 [![Mindful Messages Sender Tests](https://github.com/sambyers/mindful-messages/actions/workflows/mindful-messages-sender.yml/badge.svg)](https://github.com/sambyers/mindful-messages/actions/workflows/mindful-messages-sender.yml)
 
 # Mindful Messages for Webex
