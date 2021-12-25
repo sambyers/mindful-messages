@@ -31,7 +31,7 @@ class TestApp(TestCase):
         self.client = Client(app)
         # Mock DynamoDB table setup
         boto3.setup_default_session()
-        self.dynamodb = boto3.resource('dynamodb')
+        self.dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
         self.table = self.dynamodb.create_table(
             TableName=self.table_name,
             KeySchema=[
