@@ -22,8 +22,7 @@ class TestApp(TestCase):
             'CORS_ALLOW_ORIGIN': 'https://test.domain.com',
             'APP_NAME': 'test_app',
             'ALLOWED_DOMAINS': 'domain.com',
-            'EPSAGON_TOKEN': '123',
-            'AWS_DEFAULT_REGION': 'us-east-1'
+            'EPSAGON_TOKEN': '123'
         }
         self.env_patch = mock.patch.dict(os.environ, self.env_vars)
         self.env_patch.start()
@@ -32,7 +31,7 @@ class TestApp(TestCase):
         self.client = Client(app)
         # Mock DynamoDB table setup
         boto3.setup_default_session()
-        self.dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+        self.dynamodb = boto3.resource('dynamodb')
         self.table = self.dynamodb.create_table(
             TableName=self.table_name,
             KeySchema=[
