@@ -18,10 +18,12 @@ epsagon.init(
     metadata_only=False,
 )
 
+
 def get_table(table_name=table_name):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(table_name)
     return table
+
 
 def get_msgs_by_datetime(table, index_name, isoformat_string):
     resp = table.query(
@@ -32,13 +34,16 @@ def get_msgs_by_datetime(table, index_name, isoformat_string):
     )
     return resp['Items']
 
+
 @epsagon.lambda_wrapper
 def lambda_handler(event, context):
     # 10 minute
-    # datetime_search_string = datetime.utcnow().strftime("%Y-%m-%dT%H:%M")[:-1]
+    # datetime_search_string = datetime.utcnow().strftime(
+    #   "%Y-%m-%dT%H:%M")[:-1]
     # 1 hour
     datetime_search_string = datetime.utcnow().strftime("%Y-%m-%dT%H:")
-    msgs = get_msgs_by_datetime(get_table(), index_name, datetime_search_string)
+    msgs = get_msgs_by_datetime(
+        get_table(), index_name, datetime_search_string)
     results = []
     for msg in msgs:
         user_id = msg.get('userid')
@@ -47,9 +52,9 @@ def lambda_handler(event, context):
         if message_item.is_valid and message_item.expired:
             user_item = UserItem(table=get_table(), user_id=user_id)
             wbxapi = WebexTeamsAPI(access_token=user_item.wbx_token)
-            wbxapi.messages.create(toPersonEmail=message_item.person, text=message_item.msg)
+            wbxapi.messages.create(
+                toPersonEmail=message_item.person, text=message_item.msg)
             user_item.remove_message(message_item.id)
             message_item.delete()
             results.append(msg)
     return {'message count': len(results)}
-

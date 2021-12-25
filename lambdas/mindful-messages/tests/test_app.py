@@ -1,6 +1,6 @@
 import os
 import boto3
-from webexteamssdk import WebexTeamsAPI
+# from webexteamssdk import WebexTeamsAPI
 from unittest import TestCase, mock
 from urllib.parse import urlparse
 from json import dumps
@@ -60,7 +60,8 @@ class TestApp(TestCase):
                 'WriteCapacityUnits': 1
             }
         )
-        self.table.meta.client.get_waiter('table_exists').wait(TableName='test-table')
+        self.table.meta.client.get_waiter('table_exists').wait(
+            TableName='test-table')
         assert self.table.table_status == 'ACTIVE'
         # Mock webexteamssdk object setup
         self.user_id = '123'
@@ -69,10 +70,21 @@ class TestApp(TestCase):
         self.wbx_person.nickName = 'Test'
         self.wbx_token = '123'
         # Mock DB items setup
-        self.user_item = UserItem(table=self.table, wbx_person=self.wbx_person, wbx_token=self.wbx_token)
-        self.session_item = SessionItem(table=self.table, user_id=self.user_item.id)
+        self.user_item = UserItem(
+            table=self.table,
+            wbx_person=self.wbx_person,
+            wbx_token=self.wbx_token
+        )
+        self.session_item = SessionItem(
+            table=self.table, user_id=self.user_item.id)
         self.user_item.add_session(self.session_item.id)
-        self.message_item = MessageItem(table=self.table, user_id=self.user_item.id, time='2021-12-25T12:00:00', msg='Test msg', person='test@domain.com')
+        self.message_item = MessageItem(
+            table=self.table,
+            user_id=self.user_item.id,
+            time='2021-12-25T12:00:00',
+            msg='Test msg',
+            person='test@domain.com'
+        )
         self.user_item.add_message(self.message_item.id)
         self.code = '123'
 
@@ -86,34 +98,37 @@ class TestApp(TestCase):
         with self.client as client:
             response = client.http.get(
                 '/wbxauth',
-                headers={'Content-Type':'application/json'}
+                headers={'Content-Type': 'application/json'}
             )
             parsed = urlparse(response.json_body['results']['location'])
             self.assertIn(self.env_vars['OAUTH_CLIENT_ID'], parsed.query)
             self.assertIn(self.env_vars['OAUTH_REDIRECT_URI'], parsed.query)
             self.assertTrue(response.json_body['success'])
-    
+
     def test_user_get(self):
         with self.client as client:
             response = client.http.get(
                 f'/user?session={self.session_item.id}',
-                headers={'Content-Type':'application/json'}
+                headers={'Content-Type': 'application/json'}
             )
-            self.assertEqual(response.json_body['results']['username'], self.wbx_person.nickName)
+            self.assertEqual(
+                response.json_body['results']['username'],
+                self.wbx_person.nickName
+            )
 
     def test_user_delete(self):
         with self.client as client:
             response = client.http.delete(
                 f'/user?session={self.session_item.id}',
-                headers={'Content-Type':'application/json'}
+                headers={'Content-Type': 'application/json'}
             )
             self.assertTrue(response.json_body['success'])
-    
+
     def test_logout_get(self):
         with self.client as client:
             response = client.http.get(
                 f'/logout?session={self.session_item.id}',
-                headers={'Content-Type':'application/json'}
+                headers={'Content-Type': 'application/json'}
             )
             self.assertTrue(response.json_body['success'])
 
@@ -123,7 +138,7 @@ class TestApp(TestCase):
         with self.client as client:
             response = client.http.post(
                 f'/schedule?session={self.session_item.id}',
-                headers={'Content-Type':'application/json'},
+                headers={'Content-Type': 'application/json'},
                 body=dumps(body)
             )
             self.assertTrue(response.json_body['success'])
@@ -131,8 +146,9 @@ class TestApp(TestCase):
     def test_message_delete(self):
         with self.client as client:
             response = client.http.delete(
-                f'/message?session={self.session_item.id}&message={self.message_item.id}',
-                headers={'Content-Type':'application/json'}
+                (f'/message?session={self.session_item.id}'
+                 f'&message={self.message_item.id}'),
+                headers={'Content-Type': 'application/json'}
             )
             self.assertTrue(response.json_body['success'])
 
@@ -140,10 +156,12 @@ class TestApp(TestCase):
         with self.client as client:
             response = client.http.get(
                 f'/messages?session={self.session_item.id}',
-                headers={'Content-Type':'application/json'}
+                headers={'Content-Type': 'application/json'}
             )
             self.assertTrue(response.json_body['success'])
-            self.assertIn(self.message_item.to_dict(), response.json_body['results'])
+            self.assertIn(
+                self.message_item.to_dict(), response.json_body['results'])
+
 
 ''' TODO: Tests that require webexteamssdk mocked
     def test_people_get(self):

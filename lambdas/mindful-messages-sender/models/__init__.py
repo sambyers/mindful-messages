@@ -13,36 +13,43 @@ webex_token_expiration_days = 13
 auth_error = {'success': False, 'results': {'error': 'Authorization error.'}}
 db_error = {'success': False, 'results': {'error': 'Database error.'}}
 
+
 # DB Item Classes
 class Item(object):
     def __init__(self, table):
         self.table = table
-        
+
     def create():
         pass
+
     def get():
         pass
+
     def update():
         pass
+
     def delete():
         pass
 
     @staticmethod
     def is_datetime_expired(isoformat_string):
         dtobj = datetime.fromisoformat(isoformat_string)
-        nowobj = datetime.fromisoformat(datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S"))
+        nowobj = datetime.fromisoformat(
+            datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S"))
         if dtobj > nowobj:
             return False
         else:
             return True
-    
+
     @staticmethod
     def to_utc(dt, tz):
         dt = datetime.fromisoformat(dt)
         tz = pytz.timezone(tz)
         # Return timezone naive datetime string, ex. '2021-12-09T16:04:42'
-        return tz.normalize(tz.localize(dt)).astimezone(pytz.utc).strftime("%Y-%m-%dT%H:%M:%S")
-    
+        return tz.normalize(
+            tz.localize(dt)).astimezone(
+                pytz.utc).strftime("%Y-%m-%dT%H:%M:%S")
+
     @staticmethod
     def from_utc(dt, tz):
         dt = datetime.fromisoformat(dt)
@@ -57,7 +64,7 @@ class Item(object):
     @staticmethod
     def get_token():
         return secrets.token_urlsafe()
-    
+
     @staticmethod
     def get_wbxtoken_expiration(days):
         return datetime.utcnow() + timedelta(days=days)
@@ -65,6 +72,7 @@ class Item(object):
     @staticmethod
     def get_session_expiration(days):
         return datetime.utcnow() + timedelta(days=days)
+
 
 class SessionItem(Item):
     def __init__(self, table=None, session_id=None, user_id=None):
@@ -76,13 +84,13 @@ class SessionItem(Item):
             self.create()
         elif session_id:
             self.get()
-    
+
     def redirect_resp(self, url):
         headers = {'Location': f'{url}?session={self.id}'}
         # Redirect to message page with session id in query param
         resp = {'body': '', 'status_code': 301, 'headers': headers}
         return resp
-    
+
     @property
     def expired(self):
         return self.is_datetime_expired(self.expires)
@@ -107,8 +115,11 @@ class SessionItem(Item):
     def get(self):
         try:
             resp = self.table.get_item(
-                Key={'pk': f'sessionid#{self.id}', 'sk': f'sessionid#{self.id}'}
-                )
+                Key={
+                    'pk': f'sessionid#{self.id}',
+                    'sk': f'sessionid#{self.id}'
+                }
+            )
         except Exception as e:
             print(e)
             return db_error
@@ -128,7 +139,12 @@ class SessionItem(Item):
     def delete(self):
         try:
             # Delete session item
-            self.table.delete_item(Key={'pk': f'sessionid#{self.id}', 'sk': f'sessionid#{self.id}'})
+            self.table.delete_item(
+                Key={
+                    'pk': f'sessionid#{self.id}',
+                    'sk': f'sessionid#{self.id}'
+                }
+            )
             self.id = None
             self.expires = None
             self.user_id = None
@@ -136,9 +152,11 @@ class SessionItem(Item):
         except Exception as e:
             print(e)
             return False
-    
+
+
 class UserItem(Item):
-    def __init__(self, table=None, user_id=None, wbx_person=None, wbx_token=None):
+    def __init__(
+            self, table=None, user_id=None, wbx_person=None, wbx_token=None):
         super().__init__(table)
         self.id = user_id
         self.wbx_person = wbx_person
@@ -159,7 +177,8 @@ class UserItem(Item):
                 'sessionid': '',
                 'displayname': self.wbx_person.nickName,
                 'wbxtoken': self.wbx_token,
-                'wbxtoken_expires': self.get_wbxtoken_expiration(days).isoformat(),
+                'wbxtoken_expires':
+                    self.get_wbxtoken_expiration(days).isoformat(),
                 'messages': list(),
                 'record_type': 'user'
             })
@@ -187,7 +206,11 @@ class UserItem(Item):
     def delete(self):
         try:
             # Delete user item
-            self.table.delete_item(Key={'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'})
+            self.table.delete_item(Key={
+                'pk': f'userid#{self.id}',
+                'sk': f'userid#{self.id}'
+                }
+            )
             self.id = None,
             self.session_id = None
             self.displayname = None
@@ -202,7 +225,7 @@ class UserItem(Item):
 
     def add_session(self, session_id):
         try:
-            resp = self.table.update_item(
+            self.table.update_item(
                 Key={'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'},
                 UpdateExpression="SET sessionid = :i",
                 ExpressionAttributeValues={
@@ -219,7 +242,7 @@ class UserItem(Item):
     def remove_session(self):
         try:
             # Update user to remove pointer to sessionid item
-            resp = self.table.update_item(
+            self.table.update_item(
                 Key={'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'},
                 UpdateExpression="REMOVE sessionid",
                 ReturnValues='ALL_NEW'
@@ -229,11 +252,11 @@ class UserItem(Item):
         except Exception as e:
             print(e)
             return db_error
-    
+
     def add_message(self, msg_id):
         try:
             # Update the user item with a pointer to the message item
-            resp = self.table.update_item(
+            self.table.update_item(
                 Key={'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'},
                 UpdateExpression="SET messages = list_append(messages, :i)",
                 ExpressionAttributeValues={
@@ -251,7 +274,7 @@ class UserItem(Item):
         msgs = [m for m in self.messages if not m == msg_id]
         try:
             # Update message list without a given message
-            resp = self.table.update_item(
+            self.table.update_item(
                 Key={'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'},
                 UpdateExpression="SET messages = :msgs",
                 ExpressionAttributeValues={
@@ -264,8 +287,17 @@ class UserItem(Item):
             print(e)
             return db_error
 
+
 class MessageItem(Item):
-    def __init__(self, table=None, msg_id=None, user_id=None, time=None, msg=None, person=None, index_name=None):
+    def __init__(
+            self,
+            table=None,
+            msg_id=None,
+            user_id=None,
+            time=None,
+            msg=None,
+            person=None,
+            index_name=None):
         super().__init__(table)
         self.id = msg_id
         self.user_id = user_id
@@ -300,7 +332,7 @@ class MessageItem(Item):
         except Exception as e:
             print(e)
             return db_error
-    
+
     def get(self):
         try:
             resp = self.table.query(
@@ -324,7 +356,11 @@ class MessageItem(Item):
     def delete(self):
         try:
             # Delete message item
-            self.table.delete_item(Key={'pk': f'message#{self.id}', 'sk': self.time})
+            self.table.delete_item(Key={
+                'pk': f'message#{self.id}',
+                'sk': self.time
+                }
+            )
             self.id = None,
             self.user_id = None
             self.time = None
@@ -335,7 +371,7 @@ class MessageItem(Item):
         except Exception as e:
             print(e)
             return False
-    
+
     def to_dict(self):
         dict = {}
         dict['id'] = self.id

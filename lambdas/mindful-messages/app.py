@@ -34,24 +34,30 @@ cors_config = CORSConfig(
 auth_error = {'success': False, 'results': {'error': 'Authorization error.'}}
 db_error = {'success': False, 'results': {'error': 'Database error.'}}
 
+
 # Helper functions
 def error_response(results=None):
     return {'success': False, 'results': results}
 
+
 def success_response(results=None):
     return {'success': True, 'results': results}
 
+
 def authorize(code):
     wbxapi = WebexTeamsAPI(client_id=client_id,
-                            client_secret=client_secret,
-                            oauth_code=code,
-                            redirect_uri=redirect_uri)
+                           client_secret=client_secret,
+                           oauth_code=code,
+                           redirect_uri=redirect_uri
+                           )
     return wbxapi
+
 
 def get_table(table_name=table_name):
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(table_name)
     return table
+
 
 def is_domain_allowed(domains, emails):
     # Poor speed here but lists are expected to be short
@@ -61,18 +67,26 @@ def is_domain_allowed(domains, emails):
                 return True
     return False
 
+
 # App routes
 # Form and respond with the Webex authorizer link, store ephemeral OAuth2 state
 @app.route('/wbxauth', methods=['GET'], cors=cors_config)
 def wbxauth():
     oauth_state = UserItem.get_token()
     try:
-        get_table().put_item(Item={'pk': f'state#{oauth_state}', 'sk': f'state#{oauth_state}'})
-        authorizer_url = f'https://webexapis.com/v1/authorize?client_id={client_id}&response_type=code&redirect_uri={redirect_uri}&scope=spark%3Akms%20spark%3Apeople_read%20spark%3Amessages_write&state={oauth_state}'
+        get_table().put_item(Item={'pk': f'state#{oauth_state}',
+                                   'sk': f'state#{oauth_state}'})
+        authorizer_url = (f'https://webexapis.com/v1/authorize'
+                          f'?client_id={client_id}'
+                          f'&response_type=code&redirect_uri={redirect_uri}'
+                          f'&scope=spark%3Akms%20spark%3Apeople_read%20'
+                          f'spark%3Amessages_write'
+                          f'&state={oauth_state}')
         return {'success': True, 'results': {'location': authorizer_url}}
     except Exception as e:
         print(e)
         return db_error
+
 
 # Authorizer for Webex accounts.
 # State is verified, a session is created, and a Webex token is created.
@@ -84,7 +98,8 @@ def auth():
     state = request.query_params.get('state')
     try:
         # Get the ephemeral state from the db
-        oauth_state = get_table().get_item(Key={'pk': f'state#{state}', 'sk': f'state#{state}'})['Item']['pk']
+        oauth_state = get_table().get_item(Key={
+            'pk': f'state#{state}', 'sk': f'state#{state}'})['Item']['pk']
     except Exception as e:
         print(e)
         return db_error
@@ -107,20 +122,27 @@ def auth():
         user_item = UserItem(table=get_table(), user_id=person.id)
         # User and Session exists
         if user_item.is_valid and user_item.session_id:
-            session_item = SessionItem(table=get_table(), session_id=user_item.session_id)
+            session_item = SessionItem(
+                table=get_table(), session_id=user_item.session_id
+                )
             if session_item.is_valid:
-                # If the session is expired, delete it from the user and the table
+                # If the session is expired, delete it user and table
                 if session_item.expired:
                     session_item.delete()
-                    new_session_item = SessionItem(table=get_table(), user_id=user_item.id)
+                    new_session_item = SessionItem(table=get_table(),
+                                                   user_id=user_item.id)
                     user_item.add_session(new_session_item.id)
-                    return Response(**new_session_item.redirect_resp(redirect_resp_url))
+                    return Response(
+                        **new_session_item.redirect_resp(redirect_resp_url))
                 else:
-                    return Response(**session_item.redirect_resp(redirect_resp_url))
+                    return Response(
+                        **session_item.redirect_resp(redirect_resp_url))
             else:
-                new_session_item = SessionItem(table=get_table(), user_id=user_item.id)
+                new_session_item = SessionItem(
+                    table=get_table(), user_id=user_item.id)
                 user_item.add_session(new_session_item.id)
-                return Response(**new_session_item.redirect_resp(redirect_resp_url))
+                return Response(
+                    **new_session_item.redirect_resp(redirect_resp_url))
         # User exists but no session, create session and add to user
         elif user_item.is_valid:
             session_item = SessionItem(table=get_table(), user_id=user_item.id)
@@ -128,17 +150,23 @@ def auth():
             return Response(**session_item.redirect_resp(redirect_resp_url))
         # No user or session exists, create both
         else:
-            new_user_item = UserItem(table=get_table(), wbx_person=person, wbx_token=wbxapi.access_token)
-            session_item = SessionItem(table=get_table(), user_id=new_user_item.id)
+            new_user_item = UserItem(
+                table=get_table(), wbx_person=person,
+                wbx_token=wbxapi.access_token)
+            session_item = SessionItem(
+                table=get_table(), user_id=new_user_item.id)
             new_user_item.add_session(session_item.id)
             return Response(**session_item.redirect_resp(redirect_resp_url))
     else:
         # Failure due to Webex API object not existing
-        return {'success': False, 'results': {'error': 'Webex authorization failed.'}}
+        return {
+            'success': False,
+            'results': {'error': 'Webex authorization failed.'}}
+
 
 # Get the username given a session ID in the query params
 @app.route('/user', methods=['GET'], cors=cors_config)
-def user():
+def get_user():
     request = app.current_request
     session_id = request.query_params.get('session')
     try:
@@ -147,15 +175,19 @@ def user():
             session_item.delete()
             return {'success': False, 'results': 'Session Expired.'}
         else:
-            user_item = UserItem(table=get_table(), user_id=session_item.user_id)
-            return {'success': True, 'results': {'username': user_item.displayname}}
+            user_item = UserItem(
+                table=get_table(), user_id=session_item.user_id)
+            return {
+                'success': True,
+                'results': {'username': user_item.displayname}}
     except Exception as e:
         print(e)
         return {'success': False, 'results': {'error': 'Database error.'}}
 
+
 # Delete the user given a session ID in the query params
 @app.route('/user', methods=['DELETE'], cors=cors_config)
-def user():
+def delete_user():
     request = app.current_request
     session_id = request.query_params.get('session')
     try:
@@ -164,12 +196,14 @@ def user():
             session_item.delete()
             return {'success': False, 'results': 'Session Expired.'}
         else:
-            user_item = UserItem(table=get_table(), user_id=session_item.user_id)
+            user_item = UserItem(
+                table=get_table(), user_id=session_item.user_id)
             if user_item.is_valid:
-                if hasattr(user_item,'messages'):
-                    # For each message ID in the user item, get the message item and delete it
+                if hasattr(user_item, 'messages'):
+                    # For each msg ID in the user item, get item and delete it
                     for message_id in user_item.messages:
-                        message_item = MessageItem(table=get_table(), msg_id=message_id)
+                        message_item = MessageItem(
+                            table=get_table(), msg_id=message_id)
                         if message_item.is_valid:
                             message_item.delete()
                 if user_item.delete():
@@ -180,6 +214,7 @@ def user():
         print(e)
         return db_error
 
+
 # Logout the user session given a session ID in the query params
 @app.route('/logout', methods=['GET'], cors=cors_config)
 def logout():
@@ -189,6 +224,7 @@ def logout():
     session_item = SessionItem(table=get_table(), session_id=session_id)
     if session_item.delete():
         return {'success': True}
+
 
 # Schedule a message to send at a later date and time given a session id
 @app.route('/schedule', methods=['POST'], cors=cors_config)
@@ -202,7 +238,8 @@ def schedule():
     message_datetime = req_data.get('time')
     message_recipient = req_data.get('person')
     message_timezone = req_data.get('timezone')
-    message_datetime_utc = MessageItem.to_utc(message_datetime, message_timezone)
+    message_datetime_utc = MessageItem.to_utc(
+        message_datetime, message_timezone)
     session_item = SessionItem(table=get_table(), session_id=session_id)
 
     if session_item.expired:
@@ -210,9 +247,15 @@ def schedule():
         return {'success': False, 'results': 'Session Expired.'}
     else:
         user_item = UserItem(table=get_table(), user_id=session_item.user_id)
-        msg_item = MessageItem(table=get_table(), user_id=user_item.id, time=message_datetime_utc, msg=message_txt, person=message_recipient)
+        msg_item = MessageItem(
+            table=get_table(),
+            user_id=user_item.id,
+            time=message_datetime_utc,
+            msg=message_txt,
+            person=message_recipient)
         user_item.add_message(msg_item.id)
         return {'success': True}
+
 
 # Return list of messages given a sessionid
 @app.route('/messages', methods=['GET'], cors=cors_config)
@@ -220,7 +263,7 @@ def messages():
     request = app.current_request
     # Get the session id from query parameters
     session_id = request.query_params.get('session')
-    timezone = request.query_params.get('timezone')
+    # timezone = request.query_params.get('timezone')
     session_item = SessionItem(table=get_table(), session_id=session_id)
     if session_item.expired:
         session_item.delete()
@@ -228,10 +271,11 @@ def messages():
     else:
         user_item = UserItem(table=get_table(), user_id=session_item.user_id)
         results = []
-        if hasattr(user_item,'messages'):
-            # For each message ID in the user item, get the message item and append to list
+        if hasattr(user_item, 'messages'):
+            # For each msg ID in user item, get msg item and append to list
             for message_id in user_item.messages:
-                message_item = MessageItem(table=get_table(), msg_id=message_id)
+                message_item = MessageItem(
+                    table=get_table(), msg_id=message_id)
                 if message_item.is_valid:
                     if not message_item.is_datetime_expired(message_item.time):
                         msg_dict = message_item.to_dict()
@@ -240,6 +284,7 @@ def messages():
                         # msg_dict['time'] = time
                         results.append(msg_dict)
         return {'success': True, 'results': results}
+
 
 # Delete message given a message ID and session ID
 @app.route('/message', methods=['DELETE'], cors=cors_config)
@@ -256,13 +301,15 @@ def message():
         message_item = MessageItem(table=get_table(), msg_id=message_id)
         if message_item.is_valid:
             if message_item.delete():
-                user_item = UserItem(table=get_table(), user_id=session_item.user_id)
+                user_item = UserItem(table=get_table(),
+                                     user_id=session_item.user_id)
                 user_item.remove_message(message_id)
                 return {'success': True, 'results': 'Message deleted.'}
             else:
                 return {'success': False, 'results': 'Message not deleted.'}
         else:
             return {'success': True, 'results': 'Message does not exist.'}
+
 
 @app.route('/people', methods=['GET'], cors=cors_config)
 def people():
@@ -281,8 +328,9 @@ def people():
     if all(chr.isalpha() or chr.isspace() for chr in query):
         user_item = UserItem(table=get_table(), user_id=session_item.user_id)
     if user_item:
-        if user_item.is_valid and not user_item.is_datetime_expired(user_item.wbx_token_expires):
-                wbxapi = WebexTeamsAPI(access_token=user_item.wbx_token)
+        if user_item.is_valid and not user_item.is_datetime_expired(
+                user_item.wbx_token_expires):
+            wbxapi = WebexTeamsAPI(access_token=user_item.wbx_token)
     if wbxapi:
         people = wbxapi.people.list(displayName=query)
         for person in people:
@@ -294,5 +342,7 @@ def people():
         return {'success': True, 'results': results}
     else:
         return {'success': False, 'results': 'No results.'}
+
+
 # Epsagon monitoring
 app = epsagon.chalice_wrapper(app)
