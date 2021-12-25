@@ -1,4 +1,5 @@
 [![Lint and test Mindful Messages](https://github.com/sambyers/mindful-messages/actions/workflows/mindful-messages.yml/badge.svg)](https://github.com/sambyers/mindful-messages/actions/workflows/mindful-messages.yml)
+[![Mindful Messages Sender Tests](https://github.com/sambyers/mindful-messages/actions/workflows/mindful-messages-sender.yml/badge.svg)](https://github.com/sambyers/mindful-messages/actions/workflows/mindful-messages-sender.yml)
 
 # Mindful Messages for Webex
 _Proof of concept to demonstrate how to integrate with Webex and extend the platform using the excellent API._
