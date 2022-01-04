@@ -22,8 +22,25 @@ class Item(object):
     def create():
         pass
 
-    def get():
-        pass
+    def _get_item(self, key_dict):
+        try:
+            resp = self.table.get_item(
+                Key=key_dict
+            )
+            return resp
+        except Exception as e:
+            print(e)
+            return db_error
+
+    def _query_item(self, key_cond_exp):
+        try:
+            resp = self.table.query(
+                KeyConditionExpression=key_cond_exp
+                )
+            return resp
+        except Exception as e:
+            print(e)
+            return db_error
 
     def update():
         pass
@@ -73,6 +90,13 @@ class Item(object):
     def get_session_expiration(days):
         return datetime.utcnow() + timedelta(days=days)
 
+    def _reflect_item_attrs(self, d):
+        if not isinstance(d, dict):
+            return False
+        for key in d.keys():
+            setattr(self, key, d[key])
+        return True
+
 
 class SessionItem(Item):
     def __init__(self, table=None, session_id=None, user_id=None):
@@ -104,8 +128,9 @@ class SessionItem(Item):
                 'pk': f'sessionid#{self.id}',
                 'sk': f'sessionid#{self.id}',
                 'expires': self.get_session_expiration(days).isoformat(),
-                'userid': self.user_id,
-                'record_type': 'session'
+                'user_id': self.user_id,
+                'record_type': 'session',
+                'id': self.id
                 })
             return self.get()
         except Exception as e:
@@ -113,21 +138,14 @@ class SessionItem(Item):
             return db_error
 
     def get(self):
-        try:
-            resp = self.table.get_item(
-                Key={
-                    'pk': f'sessionid#{self.id}',
-                    'sk': f'sessionid#{self.id}'
-                }
-            )
-        except Exception as e:
-            print(e)
-            return db_error
+        key_dict = {
+            'pk': f'sessionid#{self.id}',
+            'sk': f'sessionid#{self.id}'
+        }
+        resp = self._get_item(key_dict)
         resp_item = resp.get('Item')
         if resp_item:
-            self.expires = resp_item.get('expires')
-            self.user_id = resp_item.get('userid')
-            self.is_valid = True
+            self.is_valid = self._reflect_item_attrs(resp_item)
             return resp_item
         else:
             self.id = None
@@ -174,13 +192,14 @@ class UserItem(Item):
             self.table.put_item(Item={
                 'pk': f'userid#{self.id}',
                 'sk': f'userid#{self.id}',
-                'sessionid': '',
+                'session_id': '',
                 'displayname': self.wbx_person.nickName,
-                'wbxtoken': self.wbx_token,
-                'wbxtoken_expires':
+                'wbx_token': self.wbx_token,
+                'wbx_token_expires':
                     self.get_wbxtoken_expiration(days).isoformat(),
                 'messages': list(),
-                'record_type': 'user'
+                'record_type': 'user',
+                'id': self.id
             })
             return self.get()
         except Exception as e:
@@ -188,20 +207,14 @@ class UserItem(Item):
             return db_error
 
     def get(self):
-        try:
-            resp = self.table.get_item(
-                Key={'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'}
-                )['Item']
-            self.session_id = resp.get('sessionid')
-            self.displayname = resp.get('displayname')
-            self.wbx_token = resp.get('wbxtoken')
-            self.wbx_token_expires = resp.get('wbxtoken_expires')
-            self.messages = resp.get('messages')
-            self.is_valid = True
+        key_dict = {'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'}
+        resp = self._get_item(key_dict)
+        resp_item = resp.get('Item')
+        if resp_item:
+            self.is_valid = self._reflect_item_attrs(resp_item)
+            return resp_item
+        else:
             return resp
-        except Exception as e:
-            print(e)
-            return db_error
 
     def delete(self):
         try:
@@ -227,7 +240,7 @@ class UserItem(Item):
         try:
             self.table.update_item(
                 Key={'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'},
-                UpdateExpression="SET sessionid = :i",
+                UpdateExpression="SET session_id = :i",
                 ExpressionAttributeValues={
                     ':i': session_id
                     },
@@ -241,10 +254,10 @@ class UserItem(Item):
 
     def remove_session(self):
         try:
-            # Update user to remove pointer to sessionid item
+            # Update user to remove pointer to session_id item
             self.table.update_item(
                 Key={'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'},
-                UpdateExpression="REMOVE sessionid",
+                UpdateExpression="REMOVE session_id",
                 ReturnValues='ALL_NEW'
                 )['Attributes']
             self.session_id = None
@@ -321,10 +334,10 @@ class MessageItem(Item):
             self.table.put_item(Item={
                 'pk': f'message#{self.id}',
                 'sk': self.time,
-                'messageid': self.id,
+                'id': self.id,
                 'msg': self.msg,
                 'person': self.person,
-                'userid': self.user_id,
+                'user_id': self.user_id,
                 'time': self.time,
                 'record_type': 'message'
                 })
@@ -334,21 +347,12 @@ class MessageItem(Item):
             return db_error
 
     def get(self):
-        try:
-            resp = self.table.query(
-                KeyConditionExpression=Key('pk').eq(f'message#{self.id}')
-                )
-        except Exception as e:
-            print(e)
-            return db_error
+        key_exp = Key('pk').eq(f'message#{self.id}')
+        resp = self._query_item(key_exp)
         resp_items = resp.get('Items')
         if resp_items:
             resp_item = resp_items[0]
-            self.user_id = resp_item.get('userid')
-            self.time = resp_item.get('time')
-            self.msg = resp_item.get('msg')
-            self.person = resp_item.get('person')
-            self.is_valid = True
+            self.is_valid = self._reflect_item_attrs(resp_item)
             return resp_item
         else:
             return resp_items
