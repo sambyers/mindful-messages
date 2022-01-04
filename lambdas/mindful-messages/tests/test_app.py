@@ -81,7 +81,7 @@ class TestApp(TestCase):
         self.message_item = MessageItem(
             table=self.table,
             user_id=self.user_item.id,
-            time='2021-12-25T12:00:00',
+            time='2030-12-25T12:00:00',
             msg='Test msg',
             person='test@domain.com'
         )
@@ -143,15 +143,6 @@ class TestApp(TestCase):
             )
             self.assertTrue(response.json_body['success'])
 
-    def test_message_delete(self):
-        with self.client as client:
-            response = client.http.delete(
-                (f'/message?session={self.session_item.id}'
-                 f'&message={self.message_item.id}'),
-                headers={'Content-Type': 'application/json'}
-            )
-            self.assertTrue(response.json_body['success'])
-
     def test_messages_get(self):
         with self.client as client:
             response = client.http.get(
@@ -161,6 +152,15 @@ class TestApp(TestCase):
             self.assertTrue(response.json_body['success'])
             self.assertIn(
                 self.message_item.to_dict(), response.json_body['results'])
+
+    def test_message_delete(self):
+        with self.client as client:
+            response = client.http.delete(
+                (f'/message?session={self.session_item.id}'
+                 f'&message={self.message_item.id}'),
+                headers={'Content-Type': 'application/json'}
+            )
+            self.assertTrue(response.json_body['success'])
 
 
 ''' TODO: Tests that require webexteamssdk mocked
