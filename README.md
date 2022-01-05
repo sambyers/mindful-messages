@@ -61,7 +61,7 @@ To view your scheduled messages, navigate to Messages. Each message will display
 ![Messages screenshot](/assets/images/mm-msglist.png)
 
 ## Setup, testing, and deployment
-Before setting up Mindful Messages, make sure to have the AWS CLI installed and your AWS credentials configured by running the ```aws congigure``` command.
+Before setting up Mindful Messages, make sure to have the AWS CLI installed and your AWS credentials configured by running the ```aws configure``` command.
 
 ### Database setup
 Set up the database by running the Cloud Formation template, ```dynamodb_cf_template.yml```.
