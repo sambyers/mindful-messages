@@ -148,6 +148,7 @@ function getMessages(sessionId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            loaderState(false)
             clearMsgCards()
             addMsgCards(sessionId, data.results)
         }
@@ -279,4 +280,9 @@ function fillInputSuggestionList(items) {
         dl.appendChild(option)
     }
     document.body.appendChild(dl)
+}
+
+function loaderState(state) {
+    let loader = document.getElementById('loader')
+    loader.hidden = state
 }
