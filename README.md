@@ -225,14 +225,14 @@ OK
 ```
 
 ### Mindful Messages frontend
-The frontend is a simple website with minimal vanilla Javascript. Repo location: ```/client2```. The Cisco UI kit is used for the webpage. It was very easy to use and looks good too.
+The frontend is a simple website with minimal vanilla Javascript. Repo location: ```/client```. The Cisco UI kit is used for the webpage. It was very easy to use and looks good too.
 
 There are two important variables to set at the top of the ```js/index.js``` file called ```baseApiUrl``` and ```rootUrl```. Set the former to the API Gateway URL without any routes appended and the latter to the root URL of the website itself.
 
 In the demo deployment, the front end is hosted on AWS S3. There's a script that can help upload to an S3 bucket. The script copies all files and directories to an S3 bucket called ```mindful-messages```, with the exception of hidden files (i.e. dot files, e.g. ```.file```).
 
 ```
-cd client2/
+cd client/
 ./s3upload.sh
 ```
 
