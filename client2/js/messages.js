@@ -13,7 +13,6 @@ window.onload = function() {
     // Otherwise, make login button
     else {
         wbxAuth()
-        let msgBtn = document.getElementById('msgSubmitBtn')
-        if (msgBtn) { msgBtn.classList.add('disabled') }
+        loaderHidden(true)
     }
 }
