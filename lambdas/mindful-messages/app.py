@@ -1,6 +1,7 @@
 import boto3
 import os
 import epsagon
+import bleach
 from webexteamssdk import WebexTeamsAPI
 from chalice import Chalice, Response, CORSConfig
 from chalicelib import UserItem, SessionItem, MessageItem
@@ -95,7 +96,7 @@ def auth():
     # Get request dict
     request = app.current_request
     # Get ephemeral state to verify correct OAuth flow
-    state = request.query_params.get('state')
+    state = bleach.clean(request.query_params.get('state'))
     try:
         # Get the ephemeral state from the db
         oauth_state = get_table().get_item(Key={
@@ -168,7 +169,7 @@ def auth():
 @app.route('/user', methods=['GET'], cors=cors_config)
 def get_user():
     request = app.current_request
-    session_id = request.query_params.get('session')
+    session_id = bleach.clean(request.query_params.get('session'))
     try:
         session_item = SessionItem(table=get_table(), session_id=session_id)
         if session_item.expired:
@@ -189,7 +190,7 @@ def get_user():
 @app.route('/user', methods=['DELETE'], cors=cors_config)
 def delete_user():
     request = app.current_request
-    session_id = request.query_params.get('session')
+    session_id = bleach.clean(request.query_params.get('session'))
     try:
         session_item = SessionItem(table=get_table(), session_id=session_id)
         if session_item.expired:
@@ -220,7 +221,7 @@ def delete_user():
 def logout():
     request = app.current_request
     # Get sessionid query parameter from the request
-    session_id = request.query_params.get('session')
+    session_id = bleach.clean(request.query_params.get('session'))
     session_item = SessionItem(table=get_table(), session_id=session_id)
     if session_item.delete():
         return {'success': True}
@@ -234,10 +235,10 @@ def schedule():
     session_id = request.query_params.get('session')
     # Get the json body and the message details
     req_data = request.json_body
-    message_txt = req_data.get('msg')
-    message_datetime = req_data.get('time')
-    message_recipient = req_data.get('person')
-    message_timezone = req_data.get('timezone')
+    message_txt = bleach.clean(req_data.get('msg'))
+    message_datetime = bleach.clean(req_data.get('time'))
+    message_recipient = bleach.clean(req_data.get('person'))
+    message_timezone = bleach.clean(req_data.get('timezone'))
     message_datetime_utc = MessageItem.to_utc(
         message_datetime, message_timezone)
     session_item = SessionItem(table=get_table(), session_id=session_id)
@@ -262,7 +263,7 @@ def schedule():
 def messages():
     request = app.current_request
     # Get the session id from query parameters
-    session_id = request.query_params.get('session')
+    session_id = bleach.clean(request.query_params.get('session'))
     # timezone = request.query_params.get('timezone')
     session_item = SessionItem(table=get_table(), session_id=session_id)
     if session_item.expired:
@@ -291,8 +292,8 @@ def messages():
 def message():
     request = app.current_request
     # Get the session id and message id from query parameters
-    session_id = request.query_params.get('session')
-    message_id = request.query_params.get('message')
+    session_id = bleach.clean(request.query_params.get('session'))
+    message_id = bleach.clean(request.query_params.get('message'))
     session_item = SessionItem(table=get_table(), session_id=session_id)
     if session_item.expired:
         session_item.delete()
@@ -315,9 +316,9 @@ def message():
 def people():
     request = app.current_request
     # Get the session id and person query from query parameters
-    session_id = request.query_params.get('session')
+    session_id = bleach.clean(request.query_params.get('session'))
     query = request.query_params.get('q')
-    query = str(query)
+    query = bleach.clean(str(query))
     session_item = SessionItem(table=get_table(), session_id=session_id)
     if session_item.expired:
         session_item.delete()
