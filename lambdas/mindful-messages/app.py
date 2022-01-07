@@ -69,6 +69,16 @@ def is_domain_allowed(domains, emails):
     return False
 
 
+def delete_state(table, state):
+    try:
+        # Delete ephemeral OAuth2 state
+        resp = table.delete_item(Key={'pk': state, 'sk': state})
+        return resp
+    except Exception as e:
+        print(e)
+        return auth_error
+
+
 # App routes
 # Form and respond with the Webex authorizer link, store ephemeral OAuth2 state
 @app.route('/wbxauth', methods=['GET'], cors=cors_config)
@@ -112,25 +122,22 @@ def auth():
         wbxapi = authorize(code)
     if wbxapi:
         person = wbxapi.people.me()
+        table = get_table()
         if not is_domain_allowed(allowed_domains, person.emails):
+            delete_state(table, oauth_state)
             return {'success': False, 'results': {'error': 'Not allowed.'}}
-        try:
-            # Delete ephemeral OAuth2 state
-            get_table().delete_item(Key={'pk': oauth_state, 'sk': oauth_state})
-        except Exception as e:
-            print(e)
-            return auth_error
-        user_item = UserItem(table=get_table(), user_id=person.id)
+        delete_state(table, oauth_state)
+        user_item = UserItem(table=table, user_id=person.id)
         # User and Session exists
         if user_item.is_valid and user_item.session_id:
             session_item = SessionItem(
-                table=get_table(), session_id=user_item.session_id
+                table=table, session_id=user_item.session_id
                 )
             if session_item.is_valid:
                 # If the session is expired, delete it user and table
                 if session_item.expired:
                     session_item.delete()
-                    new_session_item = SessionItem(table=get_table(),
+                    new_session_item = SessionItem(table=table,
                                                    user_id=user_item.id)
                     user_item.add_session(new_session_item.id)
                     return Response(
@@ -140,22 +147,22 @@ def auth():
                         **session_item.redirect_resp(redirect_resp_url))
             else:
                 new_session_item = SessionItem(
-                    table=get_table(), user_id=user_item.id)
+                    table=table, user_id=user_item.id)
                 user_item.add_session(new_session_item.id)
                 return Response(
                     **new_session_item.redirect_resp(redirect_resp_url))
         # User exists but no session, create session and add to user
         elif user_item.is_valid:
-            session_item = SessionItem(table=get_table(), user_id=user_item.id)
+            session_item = SessionItem(table=table, user_id=user_item.id)
             user_item.add_session(session_item.id)
             return Response(**session_item.redirect_resp(redirect_resp_url))
         # No user or session exists, create both
         else:
             new_user_item = UserItem(
-                table=get_table(), wbx_person=person,
+                table=table, wbx_person=person,
                 wbx_token=wbxapi.access_token)
             session_item = SessionItem(
-                table=get_table(), user_id=new_user_item.id)
+                table=table, user_id=new_user_item.id)
             new_user_item.add_session(session_item.id)
             return Response(**session_item.redirect_resp(redirect_resp_url))
     else:
