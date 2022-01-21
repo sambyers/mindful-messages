@@ -46,8 +46,8 @@ def lambda_handler(event, context):
         get_table(), index_name, datetime_search_string)
     results = []
     for msg in msgs:
-        user_id = msg.get('userid')
-        message_id = msg.get('messageid')
+        user_id = msg.get('user_id')
+        message_id = msg.get('id')
         message_item = MessageItem(table=get_table(), msg_id=message_id)
         if message_item.is_valid and message_item.expired:
             user_item = UserItem(table=get_table(), user_id=user_id)
