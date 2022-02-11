@@ -34,6 +34,7 @@ cors_config = CORSConfig(
 # Errors
 auth_error = {'success': False, 'results': {'error': 'Authorization error.'}}
 db_error = {'success': False, 'results': {'error': 'Database error.'}}
+session_expired = {'success': False, 'results': 'Session Expired.'}
 
 
 # Helper functions
@@ -183,7 +184,7 @@ def get_user():
         session_item = SessionItem(table=get_table(), session_id=session_id)
         if session_item.expired:
             session_item.delete()
-            return {'success': False, 'results': 'Session Expired.'}
+            return session_expired
         else:
             user_item = UserItem(
                 table=get_table(), user_id=session_item.user_id)
@@ -204,7 +205,7 @@ def delete_user():
         session_item = SessionItem(table=get_table(), session_id=session_id)
         if session_item.expired:
             session_item.delete()
-            return {'success': False, 'results': 'Session Expired.'}
+            return session_expired
         else:
             user_item = UserItem(
                 table=get_table(), user_id=session_item.user_id)
@@ -254,7 +255,7 @@ def schedule():
 
     if session_item.expired:
         session_item.delete()
-        return {'success': False, 'results': 'Session Expired.'}
+        return session_expired
     else:
         user_item = UserItem(table=get_table(), user_id=session_item.user_id)
         msg_item = MessageItem(
@@ -277,7 +278,7 @@ def messages():
     session_item = SessionItem(table=get_table(), session_id=session_id)
     if session_item.expired:
         session_item.delete()
-        return {'success': False, 'results': 'Session Expired.'}
+        return session_expired
     else:
         user_item = UserItem(table=get_table(), user_id=session_item.user_id)
         results = []
@@ -306,7 +307,7 @@ def message():
     session_item = SessionItem(table=get_table(), session_id=session_id)
     if session_item.expired:
         session_item.delete()
-        return {'success': False, 'results': 'Session Expired.'}
+        return session_expired
     else:
         message_item = MessageItem(table=get_table(), msg_id=message_id)
         if message_item.is_valid:
@@ -331,7 +332,7 @@ def people():
     session_item = SessionItem(table=get_table(), session_id=session_id)
     if session_item.expired:
         session_item.delete()
-        return {'success': False, 'results': 'Session Expired.'}
+        return session_expired
     user_item = None
     wbxapi = None
     results = []

@@ -8,6 +8,7 @@ from boto3.dynamodb.conditions import Key
 # Session and token expiration constants
 session_expiration_hours = 2
 webex_token_expiration_days = 13
+time_fmt = "%Y-%m-%dT%H:%M:%S"
 
 # Errors
 auth_error = {'success': False, 'results': {'error': 'Authorization error.'}}
@@ -88,7 +89,7 @@ class Item(object):
         # e.g. 2022-02-20T03:48:47.336062
         dtobj = datetime.fromisoformat(isoformat_string)
         nowobj = datetime.fromisoformat(
-            datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S"))
+            datetime.utcnow().strftime(time_fmt))
         if dtobj > nowobj:
             return False
         else:
@@ -101,14 +102,14 @@ class Item(object):
         # Return timezone naive datetime string, ex. '2021-12-09T16:04:42'
         return tz.normalize(
             tz.localize(dt)).astimezone(
-                pytz.utc).strftime("%Y-%m-%dT%H:%M:%S")
+                pytz.utc).strftime(time_fmt)
 
     @staticmethod
     def from_utc(dt, tz):
         dt = datetime.fromisoformat(dt)
         tz = pytz.timezone(tz)
         # Return timezone naive datetime string, ex. '2021-12-09T16:04:42'
-        return tz.fromutc(dt).strftime("%Y-%m-%dT%H:%M:%S")
+        return tz.fromutc(dt).strftime(time_fmt)
 
     @staticmethod
     def get_uuid():
