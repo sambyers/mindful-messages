@@ -7,7 +7,7 @@ from models import (
     UserItem,
     SessionItem,
     MessageItem,
-    session_expiration_days
+    session_expiration_hours
 )
 
 
@@ -184,7 +184,7 @@ class TestSessionItem(TestCase):
     def test_session_expired_true(self):
         # Expire the session by subtracting a day from the expiration
         past_datetime = (
-            datetime.utcnow() - timedelta(days=session_expiration_days))
+            datetime.utcnow() - timedelta(days=session_expiration_hours))
         self.session_item.expires = past_datetime.isoformat()
         self.assertTrue(self.session_item.expired)
 

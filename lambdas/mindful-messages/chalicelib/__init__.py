@@ -6,7 +6,7 @@ from boto3.dynamodb.conditions import Key
 
 
 # Session and token expiration constants
-session_expiration_days = 1
+session_expiration_hours = 2
 webex_token_expiration_days = 13
 
 # Errors
@@ -123,8 +123,8 @@ class Item(object):
         return datetime.utcnow() + timedelta(days=days)
 
     @staticmethod
-    def get_session_expiration(days):
-        return datetime.utcnow() + timedelta(days=days)
+    def get_session_expiration(hours):
+        return datetime.utcnow() + timedelta(hours=hours)
 
     def _reflect_item_attrs(self, d):
         if not isinstance(d, dict):
@@ -155,13 +155,13 @@ class SessionItem(Item):
     def expired(self):
         return self.is_datetime_expired(self.expires)
 
-    def create(self, days=session_expiration_days):
+    def create(self, delta=session_expiration_hours):
         # Create session token
         self.id = self.get_token()
         item = {
                 'pk': f'sessionid#{self.id}',
                 'sk': f'sessionid#{self.id}',
-                'expires': self.get_session_expiration(days).isoformat(),
+                'expires': self.get_session_expiration(delta).isoformat(),
                 'user_id': self.user_id,
                 'record_type': 'session',
                 'id': self.id
