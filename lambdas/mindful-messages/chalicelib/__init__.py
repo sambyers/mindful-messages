@@ -374,9 +374,9 @@ class MessageItem(Item):
         return True
 
     def to_dict(self):
-        dict = {}
-        dict['id'] = self.id
-        dict['time'] = self.time
-        dict['msg'] = self.msg
-        dict['person'] = self.person
-        return dict
+        output = {}
+        output['id'] = self.id
+        output['time'] = self.time
+        output['msg'] = self.msg
+        output['person'] = self.person
+        return output
