@@ -153,6 +153,8 @@ def auth():
                     **new_session_item.redirect_resp(redirect_resp_url))
         # User exists but no session, create session and add to user
         elif user_item.is_valid:
+            if user_item.wbx_token_expired:
+                user_item.update_wbx_token(wbxapi.access_token)
             session_item = SessionItem(table=table, user_id=user_item.id)
             user_item.add_session(session_item.id)
             return Response(**session_item.redirect_resp(redirect_resp_url))

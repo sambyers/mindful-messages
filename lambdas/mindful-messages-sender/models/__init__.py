@@ -19,20 +19,23 @@ class Item(object):
     def __init__(self, table):
         self.table = table
 
-    def create():
-        pass
-
-    def _get_item(self, key_dict):
+    def _create_item(self, item: dict) -> dict:
         try:
-            resp = self.table.get_item(
-                Key=key_dict
-            )
+            resp = self.table.put_item(Item=item)
             return resp
         except Exception as e:
             print(e)
             return db_error
 
-    def _query_item(self, key_cond_exp):
+    def _get_item(self, key: dict) -> dict:
+        try:
+            resp = self.table.get_item(Key=key)
+            return resp
+        except Exception as e:
+            print(e)
+            return db_error
+
+    def _query_item(self, key_cond_exp: Key) -> dict:
         try:
             resp = self.table.query(
                 KeyConditionExpression=key_cond_exp
@@ -42,14 +45,47 @@ class Item(object):
             print(e)
             return db_error
 
-    def update():
-        pass
+    def _update_item(
+            self,
+            key: dict,
+            update_exp: str,
+            exp_attr_values: dict = None) -> dict:
+        if exp_attr_values:
+            try:
+                resp = self.table.update_item(
+                    Key=key,
+                    UpdateExpression=update_exp,
+                    ExpressionAttributeValues=exp_attr_values,
+                    ReturnValues='ALL_NEW'
+                    )
+                return resp
+            except Exception as e:
+                print(e)
+                return db_error
+        else:
+            try:
+                resp = self.table.update_item(
+                    Key=key,
+                    UpdateExpression=update_exp,
+                    ReturnValues='ALL_NEW'
+                    )
+                return resp
+            except Exception as e:
+                print(e)
+                return db_error
 
-    def delete():
-        pass
+    def _delete_item(self, key):
+        try:
+            # Delete user item
+            self.table.delete_item(Key=key)
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
     @staticmethod
     def is_datetime_expired(isoformat_string):
+        # e.g. 2022-02-20T03:48:47.336062
         dtobj = datetime.fromisoformat(isoformat_string)
         nowobj = datetime.fromisoformat(
             datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S"))
@@ -122,20 +158,16 @@ class SessionItem(Item):
     def create(self, days=session_expiration_days):
         # Create session token
         self.id = self.get_token()
-        try:
-            # Create the session item
-            self.table.put_item(Item={
+        item = {
                 'pk': f'sessionid#{self.id}',
                 'sk': f'sessionid#{self.id}',
                 'expires': self.get_session_expiration(days).isoformat(),
                 'user_id': self.user_id,
                 'record_type': 'session',
                 'id': self.id
-                })
-            return self.get()
-        except Exception as e:
-            print(e)
-            return db_error
+        }
+        self._create_item(item)
+        return self.get()
 
     def get(self):
         key_dict = {
@@ -155,21 +187,15 @@ class SessionItem(Item):
             return resp
 
     def delete(self):
-        try:
-            # Delete session item
-            self.table.delete_item(
-                Key={
-                    'pk': f'sessionid#{self.id}',
-                    'sk': f'sessionid#{self.id}'
-                }
-            )
-            self.id = None
-            self.expires = None
-            self.user_id = None
-            return True
-        except Exception as e:
-            print(e)
-            return False
+        key = {
+            'pk': f'sessionid#{self.id}',
+            'sk': f'sessionid#{self.id}'
+        }
+        resp = self._delete_item(key)
+        self.id = None
+        self.expires = None
+        self.user_id = None
+        return resp
 
 
 class UserItem(Item):
@@ -185,26 +211,27 @@ class UserItem(Item):
         elif wbx_person and wbx_token:
             self.create()
 
+    @property
+    def wbx_token_expired(self):
+        if self.is_valid:
+            return self.is_datetime_expired(self.wbx_token_expires)
+
     def create(self, days=webex_token_expiration_days):
-        try:
-            # Create new user item
-            self.id = self.wbx_person.id
-            self.table.put_item(Item={
-                'pk': f'userid#{self.id}',
-                'sk': f'userid#{self.id}',
-                'session_id': '',
-                'displayname': self.wbx_person.nickName,
-                'wbx_token': self.wbx_token,
-                'wbx_token_expires':
-                    self.get_wbxtoken_expiration(days).isoformat(),
-                'messages': list(),
-                'record_type': 'user',
-                'id': self.id
-            })
-            return self.get()
-        except Exception as e:
-            print(e)
-            return db_error
+        self.id = self.wbx_person.id
+        item = {
+            'pk': f'userid#{self.id}',
+            'sk': f'userid#{self.id}',
+            'session_id': '',
+            'displayname': self.wbx_person.nickName,
+            'wbx_token': self.wbx_token,
+            'wbx_token_expires':
+                self.get_wbxtoken_expiration(days).isoformat(),
+            'messages': list(),
+            'record_type': 'user',
+            'id': self.id
+        }
+        self._create_item(item)
+        return self.get()
 
     def get(self):
         key_dict = {'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'}
@@ -217,88 +244,66 @@ class UserItem(Item):
             return resp
 
     def delete(self):
-        try:
-            # Delete user item
-            self.table.delete_item(Key={
-                'pk': f'userid#{self.id}',
-                'sk': f'userid#{self.id}'
-                }
-            )
-            self.id = None,
-            self.session_id = None
-            self.displayname = None
-            self.wbx_token = None
-            self.wbx_token_expires = None
-            self.messages = None
-            self.is_valid = False
-            return True
-        except Exception as e:
-            print(e)
-            return False
+        key = {
+            'pk': f'userid#{self.id}',
+            'sk': f'userid#{self.id}'
+        }
+        resp = self._delete_item(key)
+        self.id = None,
+        self.session_id = None
+        self.displayname = None
+        self.wbx_token = None
+        self.wbx_token_expires = None
+        self.messages = None
+        self.is_valid = False
+        return resp
+
+    def update_wbx_token(self, wbx_token: str) -> dict:
+        key = {'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'}
+        update_exp = 'SET wbx_token = :i'
+        exp_attr_values = {':i': wbx_token}
+        self._update_item(key, update_exp, exp_attr_values)
+        self._update_wbx_token_expiration(key)
+        return self.get()
+
+    def _update_wbx_token_expiration(
+            self,
+            key: dict,
+            days: int = webex_token_expiration_days) -> None:
+        wbx_token_expires = self.get_wbxtoken_expiration(days).isoformat()
+        update_exp = 'SET wbx_token_expires = :i'
+        exp_attr_values = {':i': wbx_token_expires}
+        self._update_item(key, update_exp, exp_attr_values)
 
     def add_session(self, session_id):
-        try:
-            self.table.update_item(
-                Key={'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'},
-                UpdateExpression="SET session_id = :i",
-                ExpressionAttributeValues={
-                    ':i': session_id
-                    },
-                ReturnValues='ALL_NEW'
-                )['Attributes']
-            self.session_id = session_id
-            return self.get()
-        except Exception as e:
-            print(e)
-            return db_error
+        key = {'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'}
+        update_exp = 'SET session_id = :i'
+        exp_attr_values = {':i': session_id}
+        self._update_item(key, update_exp, exp_attr_values)
+        return self.get()
 
     def remove_session(self):
-        try:
-            # Update user to remove pointer to session_id item
-            self.table.update_item(
-                Key={'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'},
-                UpdateExpression="REMOVE session_id",
-                ReturnValues='ALL_NEW'
-                )['Attributes']
-            self.session_id = None
-            return self.get()
-        except Exception as e:
-            print(e)
-            return db_error
+        key = {'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'}
+        update_exp = 'REMOVE session_id'
+        self._update_item(key, update_exp)
+        self.session_id = None
+        return self.get()
 
     def add_message(self, msg_id):
-        try:
-            # Update the user item with a pointer to the message item
-            self.table.update_item(
-                Key={'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'},
-                UpdateExpression="SET messages = list_append(messages, :i)",
-                ExpressionAttributeValues={
-                    ':i': [msg_id]
-                },
-                ReturnValues='ALL_NEW'
-                )['Attributes']
-            return self.get()
-        except Exception as e:
-            print(e)
-            return db_error
+        key = {'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'}
+        update_exp = 'SET messages = list_append(messages, :i)'
+        exp_attr_values = {':i': [msg_id]}
+        self._update_item(key, update_exp, exp_attr_values)
+        return self.get()
 
-    # Needs testing
     def remove_message(self, msg_id):
+        # Remove given msg, update msg list on user item
         msgs = [m for m in self.messages if not m == msg_id]
-        try:
-            # Update message list without a given message
-            self.table.update_item(
-                Key={'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'},
-                UpdateExpression="SET messages = :msgs",
-                ExpressionAttributeValues={
-                    ':msgs': msgs
-                },
-                ReturnValues='ALL_NEW'
-                )['Attributes']
-            return self.get()
-        except Exception as e:
-            print(e)
-            return db_error
+        key = {'pk': f'userid#{self.id}', 'sk': f'userid#{self.id}'}
+        update_exp = 'SET messages = :msgs'
+        exp_attr_values = {':msgs': msgs}
+        self._update_item(key, update_exp, exp_attr_values)
+        return self.get()
 
 
 class MessageItem(Item):
@@ -330,21 +335,18 @@ class MessageItem(Item):
 
     def create(self):
         self.id = self.get_uuid()
-        try:
-            self.table.put_item(Item={
-                'pk': f'message#{self.id}',
-                'sk': self.time,
-                'id': self.id,
-                'msg': self.msg,
-                'person': self.person,
-                'user_id': self.user_id,
-                'time': self.time,
-                'record_type': 'message'
-                })
-            return self.get()
-        except Exception as e:
-            print(e)
-            return db_error
+        item = {
+            'pk': f'message#{self.id}',
+            'sk': self.time,
+            'id': self.id,
+            'msg': self.msg,
+            'person': self.person,
+            'user_id': self.user_id,
+            'time': self.time,
+            'record_type': 'message'
+        }
+        self._create_item(item)
+        return self.get()
 
     def get(self):
         key_exp = Key('pk').eq(f'message#{self.id}')
@@ -358,23 +360,18 @@ class MessageItem(Item):
             return resp_items
 
     def delete(self):
-        try:
-            # Delete message item
-            self.table.delete_item(Key={
-                'pk': f'message#{self.id}',
-                'sk': self.time
-                }
-            )
-            self.id = None,
-            self.user_id = None
-            self.time = None
-            self.msg = None
-            self.person = None
-            self.is_valid = False
-            return True
-        except Exception as e:
-            print(e)
-            return False
+        key = {
+            'pk': f'message#{self.id}',
+            'sk': self.time
+        }
+        self._delete_item(key)
+        self.id = None,
+        self.user_id = None
+        self.time = None
+        self.msg = None
+        self.person = None
+        self.is_valid = False
+        return True
 
     def to_dict(self):
         dict = {}

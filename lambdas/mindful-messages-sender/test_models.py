@@ -77,6 +77,16 @@ class TestUserItem(TestCase):
         self.assertEqual(self.user_item.id, self.wbx_person.id)
         self.assertEqual(self.user_item.displayname, self.wbx_person.nickName)
 
+    def test_user_webex_token_expiration(self):
+        self.assertFalse(self.user_item.wbx_token_expired)
+
+    def test_user_webex_token_update(self):
+        pre_exp_dt = datetime.fromisoformat(self.user_item.wbx_token_expires)
+        self.user_item.update_wbx_token('456')
+        post_exp_dt = datetime.fromisoformat(self.user_item.wbx_token_expires)
+        self.assertEqual('456', self.user_item.wbx_token)
+        self.assertGreater(post_exp_dt, pre_exp_dt)
+
     def test_user_add_session(self):
         self.user_item.add_session(self.session_id)
         self.assertEqual(self.user_item.session_id, self.session_id)
@@ -96,7 +106,8 @@ class TestUserItem(TestCase):
         self.assertNotIn(self.message_id, self.user_item.messages)
 
     def test_user_delete(self):
-        self.assertTrue(self.user_item.delete())
+        self.user_item.delete()
+        self.assertFalse(self.user_item.is_valid)
 
 
 @mock_dynamodb2
