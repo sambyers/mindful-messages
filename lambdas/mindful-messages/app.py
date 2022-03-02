@@ -131,6 +131,10 @@ def auth():
         user_item = UserItem(table=table, user_id=person.id)
         # User and Session exists
         if user_item.is_valid and user_item.session_id:
+            # Check wbx token, renew if needed
+            if user_item.wbx_token_expired:
+                user_item.update_wbx_token(wbxapi.access_token)
+            # Get session item from db
             session_item = SessionItem(
                 table=table, session_id=user_item.session_id
                 )
@@ -141,17 +145,18 @@ def auth():
                     new_session_item = SessionItem(table=table,
                                                    user_id=user_item.id)
                     user_item.add_session(new_session_item.id)
-                    return Response(
+                    resp = Response(
                         **new_session_item.redirect_resp(redirect_resp_url))
                 else:
-                    return Response(
+                    resp = Response(
                         **session_item.redirect_resp(redirect_resp_url))
             else:
                 new_session_item = SessionItem(
                     table=table, user_id=user_item.id)
                 user_item.add_session(new_session_item.id)
-                return Response(
+                resp = Response(
                     **new_session_item.redirect_resp(redirect_resp_url))
+            return resp
         # User exists but no session, create session and add to user
         elif user_item.is_valid:
             if user_item.wbx_token_expired:
