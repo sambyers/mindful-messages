@@ -6,7 +6,7 @@ _Proof of concept to demonstrate how to integrate with Webex and extend the plat
 #
 Mindful Messages is a proof of concept Webex integration that provides a message scheduling service. It gives you an option to send a message to someone on the Webex platform at a time more in tune with their active hours. By scheduling a message for during someone's active hours, you are saving that person from a distracting notification and implicit expectations of working outside of their normal hours.
 
-[Webex now supports scheduling a message.](https://help.webex.com/en-us/article/zphv2eb/Webex-App-%7C-Send-a-scheduled-message)  
+[Webex now supports scheduling a message.]()  
 ~~You can find the demo proof of concept [here](https://mindful-messages.s3.amazonaws.com/index.html).~~  
 
 
