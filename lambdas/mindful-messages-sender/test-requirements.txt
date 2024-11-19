@@ -8,7 +8,7 @@ cryptography==43.0.1
 epsagon==1.77.0
 flake8==4.0.1
 future==0.18.2
-idna==3.3
+idna==3.7
 Jinja2==3.1.4
 jmespath==0.10.0
 MarkupSafe==2.0.1
